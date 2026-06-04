@@ -362,7 +362,7 @@ export default function Home() {
                 </p>
               )}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
               <div className="space-y-2">
@@ -703,29 +703,79 @@ export default function Home() {
                 ["back", "Back Relaxed"],
               ].map(([key, label]) => (
                 <div key={key}>
+
                   <label className="cursor-pointer group">
-                    <div className={`border border-dashed rounded-3xl p-8 bg-zinc-900 transition duration-300 hover:bg-zinc-800 ${errors[key]
-                      ? "border-red-500"
-                      : "border-zinc-700 hover:border-white"
-                      }`}>
 
-                      <div className="flex flex-col items-center justify-center text-center space-y-4">
+                    <div
+                      className={`border border-dashed rounded-3xl p-8 bg-zinc-900 transition duration-300 hover:bg-zinc-800 ${errors[key]
+                          ? "border-red-500"
+                          : "border-zinc-700 hover:border-white"
+                        }`}
+                    >
 
-                        <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 group-hover:scale-110 transition duration-300">
-                          <Upload className="w-7 h-7 text-white" />
+                      {!images[key] ? (
+
+                        <div className="flex flex-col items-center justify-center text-center space-y-4">
+
+                          <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 group-hover:scale-110 transition duration-300">
+                            <Upload className="w-7 h-7 text-white" />
+                          </div>
+
+                          <div>
+                            <p className="font-semibold text-lg">
+                              {label}
+                            </p>
+
+                            <p className="text-sm text-zinc-400 mt-1">
+                              Click to upload photo
+                            </p>
+                          </div>
+
                         </div>
 
-                        <div>
-                          <p className="font-semibold text-lg">
-                            {label}
-                          </p>
+                      ) : (
 
-                          <p className="text-sm text-zinc-400 mt-1">
-                            Click to upload photo
-                          </p>
+                        <div className="flex flex-col items-center justify-center text-center space-y-5">
+
+                          <div className="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="w-10 h-10 text-green-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+
+                          </div>
+
+                          <div>
+                            <p className="font-semibold text-lg text-white">
+                              {label} Uploaded
+                            </p>
+
+                            <p className="text-sm text-zinc-400 mt-2 break-all px-2">
+                              {images[key]?.name}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="px-5 py-2 rounded-xl bg-white text-black text-sm font-medium hover:bg-zinc-200 transition"
+                          >
+                            Reupload
+                          </button>
+
                         </div>
 
-                      </div>
+                      )}
 
                       <input
                         type="file"
@@ -733,8 +783,7 @@ export default function Home() {
                         onChange={(e) => {
                           setImages({
                             ...images,
-                            [key]:
-                              e.target.files?.[0],
+                            [key]: e.target.files?.[0],
                           });
 
                           setErrors({
@@ -743,7 +792,9 @@ export default function Home() {
                           });
                         }}
                       />
+
                     </div>
+
                   </label>
 
                   {errors[key] && (
@@ -751,12 +802,12 @@ export default function Home() {
                       {errors[key]}
                     </p>
                   )}
+
                 </div>
               ))}
 
             </div>
           </section>
-
           {/* SUBMIT BUTTON */}
 
           <button
