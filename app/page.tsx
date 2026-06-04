@@ -66,8 +66,6 @@ export default function Home() {
   const validateForm = () => {
     const newErrors: any = {};
 
-    // BASIC INFO
-
     if (!formData.email)
       newErrors.email =
         "Please add your email address";
@@ -80,8 +78,6 @@ export default function Home() {
       newErrors.weight =
         "Please add your weight";
 
-    // HEIGHT
-
     if (!formData.height_feet)
       newErrors.height_feet =
         "Please add your height in feet";
@@ -89,8 +85,6 @@ export default function Home() {
     if (!formData.height_inches)
       newErrors.height_inches =
         "Please add your height in inches";
-
-    // MEASUREMENTS
 
     if (!formData.chest)
       newErrors.chest =
@@ -112,13 +106,9 @@ export default function Home() {
       newErrors.waist =
         "Please add your waist measurement";
 
-    // GOAL
-
     if (!formData.goal)
       newErrors.goal =
         "Please add your fitness goal";
-
-    // FOOD
 
     if (!formData.diet_type)
       newErrors.diet_type =
@@ -132,8 +122,6 @@ export default function Home() {
       newErrors.food_allergies =
         "Please add your food allergies";
 
-    // MEDICAL
-
     if (!formData.medical_conditions)
       newErrors.medical_conditions =
         "Please add your medical conditions";
@@ -146,13 +134,9 @@ export default function Home() {
       newErrors.anabolic_history =
         "Please add your anabolic history";
 
-    // ROUTINE
-
     if (!formData.daily_routine)
       newErrors.daily_routine =
         "Please add your daily routine";
-
-    // IMAGES
 
     if (!images.front)
       newErrors.front =
@@ -202,30 +186,30 @@ export default function Home() {
 
     const frontUrl = images.front
       ? await uploadImage(
-          images.front,
-          `front-${Date.now()}`
-        )
+        images.front,
+        `front-${Date.now()}`
+      )
       : "";
 
     const leftUrl = images.left
       ? await uploadImage(
-          images.left,
-          `left-${Date.now()}`
-        )
+        images.left,
+        `left-${Date.now()}`
+      )
       : "";
 
     const rightUrl = images.right
       ? await uploadImage(
-          images.right,
-          `right-${Date.now()}`
-        )
+        images.right,
+        `right-${Date.now()}`
+      )
       : "";
 
     const backUrl = images.back
       ? await uploadImage(
-          images.back,
-          `back-${Date.now()}`
-        )
+        images.back,
+        `back-${Date.now()}`
+      )
       : "";
 
     const { error } = await supabase
@@ -286,10 +270,9 @@ export default function Home() {
   };
 
   const inputClass = (field: string) =>
-    `w-full p-4 rounded-2xl bg-zinc-900 border outline-none transition duration-300 ${
-      errors[field]
-        ? "border-red-500"
-        : "border-zinc-700 focus:border-white"
+    `w-full p-4 rounded-2xl bg-zinc-900 border outline-none transition duration-300 ${errors[field]
+      ? "border-red-500"
+      : "border-zinc-700 focus:border-white"
     }`;
 
   return (
@@ -298,14 +281,28 @@ export default function Home() {
 
         {/* HEADER */}
 
-        <div className="mb-14">
-          <h1 className="text-5xl font-bold tracking-tight">
-            Client Check-In
+        <div className="mb-14 flex flex-col items-center text-center">
+
+          {/* LOGO */}
+
+          <img
+            src="/TeamPremLogoNoBG.png"
+            alt="Team Prem Logo"
+            className="w-40 md:w-52 object-contain -mt-5 -mb-5"
+          />
+
+          {/* TITLE */}
+
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-wide">
+            Client Check-Ins
           </h1>
 
-          <p className="text-zinc-400 mt-4 text-lg">
+          {/* SUBTITLE */}
+
+          <p className="text-zinc-400 mt-4 text-lg max-w-lg">
             Fill in your physique and lifestyle details accurately.
           </p>
+
         </div>
 
         <div className="space-y-12">
@@ -316,8 +313,6 @@ export default function Home() {
             <h2 className="text-2xl font-semibold border-b border-zinc-800 pb-3">
               Basic Information
             </h2>
-
-            {/* EMAIL */}
 
             <div className="space-y-2">
               <label className="text-sm text-zinc-300">
@@ -342,8 +337,6 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              {/* AGE */}
-
               <div className="space-y-2">
                 <label className="text-sm text-zinc-300">
                   Age
@@ -364,8 +357,6 @@ export default function Home() {
                   </p>
                 )}
               </div>
-
-              {/* WEIGHT */}
 
               <div className="space-y-2">
                 <label className="text-sm text-zinc-300">
@@ -400,8 +391,6 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              {/* FEET */}
-
               <div className="space-y-2">
                 <label className="text-sm text-zinc-300">
                   Feet
@@ -431,8 +420,6 @@ export default function Home() {
                   </p>
                 )}
               </div>
-
-              {/* INCHES */}
 
               <div className="space-y-2">
                 <label className="text-sm text-zinc-300">
@@ -496,7 +483,7 @@ export default function Home() {
                     name={name}
                     value={
                       formData[
-                        name as keyof typeof formData
+                      name as keyof typeof formData
                       ]
                     }
                     onChange={handleChange}
@@ -633,7 +620,7 @@ export default function Home() {
                   name={name}
                   value={
                     formData[
-                      name as keyof typeof formData
+                    name as keyof typeof formData
                     ]
                   }
                   onChange={handleChange}
@@ -689,11 +676,10 @@ export default function Home() {
               ].map(([key, label]) => (
                 <div key={key}>
                   <label className="cursor-pointer group">
-                    <div className={`border border-dashed rounded-3xl p-8 bg-zinc-900 transition duration-300 hover:bg-zinc-800 ${
-                      errors[key]
+                    <div className={`border border-dashed rounded-3xl p-8 bg-zinc-900 transition duration-300 hover:bg-zinc-800 ${errors[key]
                         ? "border-red-500"
                         : "border-zinc-700 hover:border-white"
-                    }`}>
+                      }`}>
 
                       <div className="flex flex-col items-center justify-center text-center space-y-4">
 
