@@ -10,6 +10,7 @@ export default function Home() {
   const [errors, setErrors] = useState<any>({});
 
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     age: "",
     weight: "",
@@ -65,6 +66,10 @@ export default function Home() {
 
   const validateForm = () => {
     const newErrors: any = {};
+
+    if (!formData.name)
+      newErrors.name =
+        "Please add your full name";
 
     if (!formData.email)
       newErrors.email =
@@ -232,6 +237,7 @@ export default function Home() {
       alert("Check-In Submitted Successfully");
 
       setFormData({
+        name: "",
         email: "",
         age: "",
         weight: "",
@@ -334,7 +340,29 @@ export default function Home() {
                 </p>
               )}
             </div>
+            {/* NAME */}
 
+            <div className="space-y-2">
+              <label className="text-sm text-zinc-300">
+                Full Name
+              </label>
+
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Enter full name"
+                className={inputClass("name")}
+              />
+
+              {errors.name && (
+                <p className="text-red-500 text-sm">
+                  {errors.name}
+                </p>
+              )}
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
               <div className="space-y-2">
@@ -677,8 +705,8 @@ export default function Home() {
                 <div key={key}>
                   <label className="cursor-pointer group">
                     <div className={`border border-dashed rounded-3xl p-8 bg-zinc-900 transition duration-300 hover:bg-zinc-800 ${errors[key]
-                        ? "border-red-500"
-                        : "border-zinc-700 hover:border-white"
+                      ? "border-red-500"
+                      : "border-zinc-700 hover:border-white"
                       }`}>
 
                       <div className="flex flex-col items-center justify-center text-center space-y-4">
