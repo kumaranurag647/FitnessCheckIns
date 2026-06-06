@@ -1,843 +1,486 @@
 "use client";
 
 import { useState } from "react";
-import { Upload } from "lucide-react";
-import { supabase } from "../lib/supabase";
 
-export default function Home() {
+const SOUTH_DELHI_AREAS = [
+  "South Delhi - General",
+  "Nehrü Place",
+  "Lajpat Nagar",
+  "Greater Kailash",
+  "Defence Colony",
+  "Kalkaji",
+  "Hauz Khas",
+  "Malviya Nagar",
+  "Vasant Kunj",
+  "Chattarpur",
+  "Mehrauli",
+  "Saket",
+  "Safdarjung Enclave",
+  "Chhatarpur Pahari",
+];
+
+const GOAL_OPTIONS = {
+  male: [
+    "Lean aesthetic model look",
+    "Fat loss for nearby function or trip",
+  ],
+  female: [
+    "Toned model look",
+    "Fat loss for nearby function or trip",
+  ],
+};
+
+const PLAN_OPTIONS = [
+  "Online Consultancy",
+  "Personal sessions",
+  "Hybrid plan",
+];
+
+export default function CheckIn() {
   const [loading, setLoading] = useState(false);
-
-  const [errors, setErrors] = useState<any>({});
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
+    fullName: "",
+    phoneNumber: "",
+    gender: "",
     age: "",
-    weight: "",
-
-    height_feet: "",
-    height_inches: "",
-
-    chest: "",
-    arms: "",
-    thighs: "",
-    calves: "",
-    waist: "",
-
+    profession: "",
+    location: "",
     goal: "",
-
-    diet_type: "",
-    food_preferences: "",
-    food_allergies: "",
-
-    medical_conditions: "",
-    injuries: "",
-    anabolic_history: "",
-
-    daily_routine: "",
+    investment: "",
+    preferredPlan: "",
   });
-
-  const [images, setImages] = useState<any>({
-    front: null,
-    left: null,
-    right: null,
-    back: null,
-  });
-
-  const feetOptions = [3, 4, 5, 6, 7, 8];
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement |
-      HTMLTextAreaElement |
-      HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-
-    setErrors({
-      ...errors,
-      [e.target.name]: "",
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: Record<string, string> = {};
 
-    if (!formData.name)
-      newErrors.name =
-        "Please add your full name";
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email";
+    }
 
-    if (!formData.email)
-      newErrors.email =
-        "Please add your email address";
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required";
+    }
 
-    if (!formData.age)
-      newErrors.age =
-        "Please add your age";
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required";
+    } else if (!/^[0-9]{10}$/.test(formData.phoneNumber.replace(/[-\s]/g, ""))) {
+      newErrors.phoneNumber = "Please enter a valid 10-digit phone number";
+    }
 
-    if (!formData.weight)
-      newErrors.weight =
-        "Please add your weight";
+    if (!formData.gender) {
+      newErrors.gender = "Gender is required";
+    }
 
-    if (!formData.height_feet)
-      newErrors.height_feet =
-        "Please add your height in feet";
+    if (!formData.age) {
+      newErrors.age = "Age is required";
+    } else if (isNaN(Number(formData.age)) || Number(formData.age) < 18) {
+      newErrors.age = "Please enter a valid age (18+)";
+    }
 
-    if (!formData.height_inches)
-      newErrors.height_inches =
-        "Please add your height in inches";
+    if (!formData.profession.trim()) {
+      newErrors.profession = "Profession is required";
+    }
 
-    if (!formData.chest)
-      newErrors.chest =
-        "Please add your chest measurement";
+    if (!formData.location) {
+      newErrors.location = "Location is required";
+    }
 
-    if (!formData.arms)
-      newErrors.arms =
-        "Please add your arms measurement";
+    if (!formData.goal) {
+      newErrors.goal = "Goal is required";
+    }
 
-    if (!formData.thighs)
-      newErrors.thighs =
-        "Please add your thighs measurement";
+    if (!formData.investment) {
+      newErrors.investment = "Investment question must be answered";
+    }
 
-    if (!formData.calves)
-      newErrors.calves =
-        "Please add your calves measurement";
-
-    if (!formData.waist)
-      newErrors.waist =
-        "Please add your waist measurement";
-
-    if (!formData.goal)
-      newErrors.goal =
-        "Please add your fitness goal";
-
-    if (!formData.diet_type)
-      newErrors.diet_type =
-        "Please select your diet type";
-
-    if (!formData.food_preferences)
-      newErrors.food_preferences =
-        "Please add your food preferences";
-
-    if (!formData.food_allergies)
-      newErrors.food_allergies =
-        "Please add your food allergies";
-
-    if (!formData.medical_conditions)
-      newErrors.medical_conditions =
-        "Please add your medical conditions";
-
-    if (!formData.injuries)
-      newErrors.injuries =
-        "Please add your injury history";
-
-    if (!formData.anabolic_history)
-      newErrors.anabolic_history =
-        "Please add your anabolic history";
-
-    if (!formData.daily_routine)
-      newErrors.daily_routine =
-        "Please add your daily routine";
-
-    if (!images.front)
-      newErrors.front =
-        "Please upload front relaxed photo";
-
-    if (!images.left)
-      newErrors.left =
-        "Please upload left side photo";
-
-    if (!images.right)
-      newErrors.right =
-        "Please upload right side photo";
-
-    if (!images.back)
-      newErrors.back =
-        "Please upload back relaxed photo";
+    if (!formData.preferredPlan) {
+      newErrors.preferredPlan = "Preferred plan is required";
+    }
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
-  const uploadImage = async (
-    file: File,
-    path: string
-  ) => {
-    const { error } = await supabase.storage
-      .from("checkins")
-      .upload(path, file);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
 
-    if (error) {
-      console.log(error);
-      return null;
+    if (!validateForm()) {
+      return;
     }
-
-    const { data } = supabase.storage
-      .from("checkins")
-      .getPublicUrl(path);
-
-    return data.publicUrl;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
 
     setLoading(true);
 
-    const frontUrl = images.front
-      ? await uploadImage(
-        images.front,
-        `front-${Date.now()}`
-      )
-      : "";
-
-    const leftUrl = images.left
-      ? await uploadImage(
-        images.left,
-        `left-${Date.now()}`
-      )
-      : "";
-
-    const rightUrl = images.right
-      ? await uploadImage(
-        images.right,
-        `right-${Date.now()}`
-      )
-      : "";
-
-    const backUrl = images.back
-      ? await uploadImage(
-        images.back,
-        `back-${Date.now()}`
-      )
-      : "";
-
-    const { error } = await supabase
-      .from("checkins")
-      .insert([
-        {
-          ...formData,
-
-          front_image: frontUrl,
-          left_image: leftUrl,
-          right_image: rightUrl,
-          back_image: backUrl,
+    try {
+      const response = await fetch("/api/potential-client", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ]);
+        body: JSON.stringify(formData),
+      });
 
-    if (error) {
-      console.log(error);
-      alert("Something went wrong");
-    } else {
-      alert("Check-In Submitted Successfully");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to submit form");
+      }
 
+      setSuccess(true);
       setFormData({
-        name: "",
         email: "",
+        fullName: "",
+        phoneNumber: "",
+        gender: "",
         age: "",
-        weight: "",
-
-        height_feet: "",
-        height_inches: "",
-
-        chest: "",
-        arms: "",
-        thighs: "",
-        calves: "",
-        waist: "",
-
+        profession: "",
+        location: "",
         goal: "",
-
-        diet_type: "",
-        food_preferences: "",
-        food_allergies: "",
-
-        medical_conditions: "",
-        injuries: "",
-        anabolic_history: "",
-
-        daily_routine: "",
+        investment: "",
+        preferredPlan: "",
       });
 
-      setImages({
-        front: null,
-        left: null,
-        right: null,
-        back: null,
-      });
+      // Reset success message after 5 seconds
+      setTimeout(() => setSuccess(false), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const inputClass = (field: string) =>
-    `w-full p-4 rounded-2xl bg-zinc-900 border outline-none transition duration-300 ${errors[field]
-      ? "border-red-500"
-      : "border-zinc-700 focus:border-white"
-    }`;
+  // Get available goals based on selected gender
+  const availableGoals =
+    formData.gender === "male"
+      ? GOAL_OPTIONS.male
+      : formData.gender === "female"
+        ? GOAL_OPTIONS.female
+        : [];
 
   return (
     <main className="min-h-screen bg-black text-white py-16 px-4">
-      <div className="max-w-3xl mx-auto bg-zinc-950 border border-zinc-800 rounded-[32px] p-10 shadow-2xl">
-
+      <div className="max-w-2xl mx-auto bg-zinc-950 border border-zinc-800 rounded-[32px] p-10 shadow-2xl">
+        
         {/* HEADER */}
-
-        <div className="mb-14 flex flex-col items-center text-center">
-
+        <div className="mb-12 flex flex-col items-center text-center">
+          
           {/* LOGO */}
-
           <img
             src="/TeamPremLogoNoBG.png"
             alt="Team Prem Logo"
-            className="w-40 md:w-52 object-contain -mt-5 -mb-5"
+            className="w-32 md:w-40 object-contain -mb-2"
           />
 
           {/* TITLE */}
-
           <h1 className="text-3xl md:text-4xl font-semibold tracking-wide">
-            Client Check-Ins
+            Unrecognisable in 3 Months
           </h1>
 
           {/* SUBTITLE */}
-
-          <p className="text-zinc-400 mt-4 text-lg max-w-lg">
-            Fill in your physique and lifestyle details accurately.
+          <p className="text-zinc-400 mt-3 text-base max-w-md">
+            Tell us about yourself to get started on your fitness journey
           </p>
-
         </div>
 
-        <div className="space-y-12">
+        {success && (
+          <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
+            <p className="text-green-300 font-medium">
+              ✓ Check-in submitted successfully! Our team will contact you soon.
+            </p>
+          </div>
+        )}
 
-          {/* BASIC INFO */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+            <p className="text-red-300 font-medium">✗ {error}</p>
+          </div>
+        )}
 
-          <section className="space-y-6">
-            <h2 className="text-2xl font-semibold border-b border-zinc-800 pb-3">
-              Basic Information
-            </h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-2">
+              Email <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg bg-zinc-900 border outline-none transition duration-300 text-white placeholder-zinc-500 ${
+                errors.email ? "border-red-500" : "border-zinc-700 focus:border-white"
+              }`}
+              placeholder="your.email@example.com"
+            />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+            )}
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-sm text-zinc-300">
-                Email Address
+          {/* Full Name */}
+          <div>
+            <label htmlFor="fullName" className="block text-sm font-medium text-zinc-300 mb-2">
+              Full Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="fullName"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg bg-zinc-900 border outline-none transition duration-300 text-white placeholder-zinc-500 ${
+                errors.fullName ? "border-red-500" : "border-zinc-700 focus:border-white"
+              }`}
+              placeholder="John Doe"
+            />
+            {errors.fullName && (
+              <p className="mt-1 text-sm text-red-400">{errors.fullName}</p>
+            )}
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label htmlFor="phoneNumber" className="block text-sm font-medium text-zinc-300 mb-2">
+              Phone Number <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              id="phoneNumber"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg bg-zinc-900 border outline-none transition duration-300 text-white placeholder-zinc-500 ${
+                errors.phoneNumber ? "border-red-500" : "border-zinc-700 focus:border-white"
+              }`}
+              placeholder="9876543210"
+            />
+            {errors.phoneNumber && (
+              <p className="mt-1 text-sm text-red-400">{errors.phoneNumber}</p>
+            )}
+          </div>
+
+          {/* Gender and Age Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Gender */}
+            <div>
+              <label htmlFor="gender" className="block text-sm font-medium text-zinc-300 mb-2">
+                Gender <span className="text-red-500">*</span>
               </label>
-
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
+              <select
+                id="gender"
+                name="gender"
+                value={formData.gender}
                 onChange={handleChange}
-                placeholder="Enter email"
-                className={inputClass("email")}
-              />
-
-              {errors.email && (
-                <p className="text-red-500 text-sm">
-                  {errors.email}
-                </p>
+                className={`w-full px-4 py-3 rounded-lg bg-zinc-900 border outline-none transition duration-300 text-white ${
+                  errors.gender ? "border-red-500" : "border-zinc-700 focus:border-white"
+                }`}
+              >
+                <option value="" className="bg-zinc-900">Select Gender</option>
+                <option value="male" className="bg-zinc-900">Male</option>
+                <option value="female" className="bg-zinc-900">Female</option>
+                <option value="other" className="bg-zinc-900">Other</option>
+              </select>
+              {errors.gender && (
+                <p className="mt-1 text-sm text-red-400">{errors.gender}</p>
               )}
             </div>
-            {/* NAME */}
 
-            <div className="space-y-2">
-              <label className="text-sm text-zinc-300">
-                Full Name
+            {/* Age */}
+            <div>
+              <label htmlFor="age" className="block text-sm font-medium text-zinc-300 mb-2">
+                Age <span className="text-red-500">*</span>
               </label>
-
               <input
-                type="text"
-                name="name"
-                value={formData.name}
+                type="number"
+                id="age"
+                name="age"
+                value={formData.age}
                 onChange={handleChange}
-                placeholder="Enter full name"
-                className={inputClass("name")}
+                className={`w-full px-4 py-3 rounded-lg bg-zinc-900 border outline-none transition duration-300 text-white placeholder-zinc-500 ${
+                  errors.age ? "border-red-500" : "border-zinc-700 focus:border-white"
+                }`}
+                placeholder="25"
+                min="18"
               />
-
-              {errors.name && (
-                <p className="text-red-500 text-sm">
-                  {errors.name}
-                </p>
+              {errors.age && (
+                <p className="mt-1 text-sm text-red-400">{errors.age}</p>
               )}
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Profession */}
+          <div>
+            <label htmlFor="profession" className="block text-sm font-medium text-zinc-300 mb-2">
+              Profession <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="profession"
+              name="profession"
+              value={formData.profession}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg bg-zinc-900 border outline-none transition duration-300 text-white placeholder-zinc-500 ${
+                errors.profession ? "border-red-500" : "border-zinc-700 focus:border-white"
+              }`}
+              placeholder="e.g., Software Engineer"
+            />
+            {errors.profession && (
+              <p className="mt-1 text-sm text-red-400">{errors.profession}</p>
+            )}
+          </div>
 
-              <div className="space-y-2">
-                <label className="text-sm text-zinc-300">
-                  Age
-                </label>
-
-                <input
-                  type="number"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  placeholder="Enter age"
-                  className={inputClass("age")}
-                />
-
-                {errors.age && (
-                  <p className="text-red-500 text-sm">
-                    {errors.age}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-zinc-300">
-                  Weight (kg)
-                </label>
-
-                <input
-                  type="number"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleChange}
-                  placeholder="Enter weight"
-                  className={inputClass("weight")}
-                />
-
-                {errors.weight && (
-                  <p className="text-red-500 text-sm">
-                    {errors.weight}
-                  </p>
-                )}
-              </div>
-
-            </div>
-          </section>
-
-          {/* HEIGHT */}
-
-          <section className="space-y-6">
-            <h2 className="text-2xl font-semibold border-b border-zinc-800 pb-3">
-              Height
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-              <div className="space-y-2">
-                <label className="text-sm text-zinc-300">
-                  Feet
-                </label>
-
-                <input
-                  list="feet-options"
-                  name="height_feet"
-                  value={formData.height_feet}
-                  onChange={handleChange}
-                  placeholder="Select feet"
-                  className={inputClass("height_feet")}
-                />
-
-                <datalist id="feet-options">
-                  {feetOptions.map((item) => (
-                    <option
-                      key={item}
-                      value={`${item} ft`}
-                    />
-                  ))}
-                </datalist>
-
-                {errors.height_feet && (
-                  <p className="text-red-500 text-sm">
-                    {errors.height_feet}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm text-zinc-300">
-                  Inches
-                </label>
-
-                <input
-                  list="height-inch-options"
-                  name="height_inches"
-                  value={formData.height_inches}
-                  onChange={handleChange}
-                  placeholder="Select inches"
-                  className={inputClass("height_inches")}
-                />
-
-                <datalist id="height-inch-options">
-                  {Array.from({ length: 12 }, (_, i) => i).map((item) => (
-                    <option
-                      key={item}
-                      value={`${item} in`}
-                    />
-                  ))}
-                </datalist>
-
-                {errors.height_inches && (
-                  <p className="text-red-500 text-sm">
-                    {errors.height_inches}
-                  </p>
-                )}
-              </div>
-
-            </div>
-          </section>
-
-          {/* MEASUREMENTS */}
-
-          <section className="space-y-6">
-            <h2 className="text-2xl font-semibold border-b border-zinc-800 pb-3">
-              Measurements
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-              {[
-                ["chest", "Chest"],
-                ["arms", "Arms"],
-                ["thighs", "Thighs"],
-                ["calves", "Calves"],
-                ["waist", "Waist"],
-              ].map(([name, label]) => (
-                <div
-                  key={name}
-                  className="space-y-2"
-                >
-                  <label className="text-sm text-zinc-300">
-                    {label} (inches)
-                  </label>
-
-                  <input
-                    type="number"
-                    name={name}
-                    value={
-                      formData[
-                      name as keyof typeof formData
-                      ]
-                    }
-                    onChange={handleChange}
-                    placeholder={`Enter ${label.toLowerCase()} size`}
-                    className={inputClass(name)}
-                  />
-
-                  {errors[name] && (
-                    <p className="text-red-500 text-sm">
-                      {errors[name]}
-                    </p>
-                  )}
-                </div>
+          {/* Location */}
+          <div>
+            <label htmlFor="location" className="block text-sm font-medium text-zinc-300 mb-2">
+              Location (South Delhi) <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg bg-zinc-900 border outline-none transition duration-300 text-white ${
+                errors.location ? "border-red-500" : "border-zinc-700 focus:border-white"
+              }`}
+            >
+              <option value="" className="bg-zinc-900">Select Location</option>
+              {SOUTH_DELHI_AREAS.map((area) => (
+                <option key={area} value={area} className="bg-zinc-900">
+                  {area}
+                </option>
               ))}
+            </select>
+            {errors.location && (
+              <p className="mt-1 text-sm text-red-400">{errors.location}</p>
+            )}
+          </div>
 
-            </div>
-          </section>
-
-          {/* GOAL */}
-
-          <section className="space-y-2">
-            <h2 className="text-2xl font-semibold border-b border-zinc-800 pb-3 mb-4">
-              Fitness Goal
-            </h2>
-
-            <textarea
+          {/* Goal */}
+          <div>
+            <label htmlFor="goal" className="block text-sm font-medium text-zinc-300 mb-2">
+              Fitness Goal <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="goal"
               name="goal"
               value={formData.goal}
               onChange={handleChange}
-              placeholder="Describe your goal..."
-              className={inputClass("goal")}
-            />
-
-            {errors.goal && (
-              <p className="text-red-500 text-sm">
-                {errors.goal}
-              </p>
-            )}
-          </section>
-
-          {/* FOOD */}
-
-          <section className="space-y-6">
-            <h2 className="text-2xl font-semibold border-b border-zinc-800 pb-3">
-              Food Preferences
-            </h2>
-
-            <div className="space-y-2">
-              <select
-                name="diet_type"
-                value={formData.diet_type}
-                onChange={handleChange}
-                className={inputClass("diet_type")}
-              >
-                <option value="">
-                  Select diet type
+              disabled={!formData.gender}
+              className={`w-full px-4 py-3 rounded-lg bg-zinc-900 border outline-none transition duration-300 text-white ${
+                errors.goal ? "border-red-500" : "border-zinc-700 focus:border-white"
+              } ${!formData.gender ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              <option value="" className="bg-zinc-900">
+                {formData.gender ? "Select Goal" : "Please select gender first"}
+              </option>
+              {availableGoals.map((goal) => (
+                <option key={goal} value={goal} className="bg-zinc-900">
+                  {goal}
                 </option>
-
-                <option value="Vegetarian">
-                  Vegetarian
-                </option>
-
-                <option value="Non-Vegetarian">
-                  Non-Vegetarian
-                </option>
-              </select>
-
-              {errors.diet_type && (
-                <p className="text-red-500 text-sm">
-                  {errors.diet_type}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <textarea
-                name="food_preferences"
-                value={formData.food_preferences}
-                onChange={handleChange}
-                placeholder="Food likes/dislikes..."
-                className={inputClass("food_preferences")}
-              />
-
-              {errors.food_preferences && (
-                <p className="text-red-500 text-sm">
-                  {errors.food_preferences}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <textarea
-                name="food_allergies"
-                value={formData.food_allergies}
-                onChange={handleChange}
-                placeholder="Food allergies..."
-                className={inputClass("food_allergies")}
-              />
-
-              {errors.food_allergies && (
-                <p className="text-red-500 text-sm">
-                  {errors.food_allergies}
-                </p>
-              )}
-            </div>
-          </section>
-
-          {/* MEDICAL */}
-
-          <section className="space-y-6">
-            <h2 className="text-2xl font-semibold border-b border-zinc-800 pb-3">
-              Medical & Injury History
-            </h2>
-
-            {[
-              [
-                "medical_conditions",
-                "Current or previous medical conditions...",
-              ],
-              [
-                "injuries",
-                "Current or previous injuries...",
-              ],
-              [
-                "anabolic_history",
-                "Previous anabolic history...",
-              ],
-            ].map(([name, placeholder]) => (
-              <div
-                key={name}
-                className="space-y-2"
-              >
-                <textarea
-                  name={name}
-                  value={
-                    formData[
-                    name as keyof typeof formData
-                    ]
-                  }
-                  onChange={handleChange}
-                  placeholder={placeholder}
-                  className={inputClass(name)}
-                />
-
-                {errors[name] && (
-                  <p className="text-red-500 text-sm">
-                    {errors[name]}
-                  </p>
-                )}
-              </div>
-            ))}
-          </section>
-
-          {/* DAILY ROUTINE */}
-
-          <section className="space-y-2">
-            <h2 className="text-2xl font-semibold border-b border-zinc-800 pb-3 mb-4">
-              Daily Routine
-            </h2>
-
-            <textarea
-              name="daily_routine"
-              value={formData.daily_routine}
-              onChange={handleChange}
-              placeholder="Wakeup time, work timings, lunch break and workout timings..."
-              className={inputClass("daily_routine")}
-            />
-
-            {errors.daily_routine && (
-              <p className="text-red-500 text-sm">
-                {errors.daily_routine}
-              </p>
-            )}
-          </section>
-
-          {/* CHECK-IN PHOTOS */}
-
-          <section className="space-y-6">
-            <h2 className="text-2xl font-semibold border-b border-zinc-800 pb-3">
-              Check-In Photos
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-              {[
-                ["front", "Front Relaxed"],
-                ["left", "Left Side"],
-                ["right", "Right Side"],
-                ["back", "Back Relaxed"],
-              ].map(([key, label]) => (
-                <div key={key}>
-
-                  <input
-                    id={`upload-${key}`}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      setImages({
-                        ...images,
-                        [key]: e.target.files?.[0],
-                      });
-
-                      setErrors({
-                        ...errors,
-                        [key]: "",
-                      });
-                    }}
-                  />
-
-                  {!images[key] ? (
-
-                    <div
-                      onClick={() =>
-                        document
-                          .getElementById(`upload-${key}`)
-                          ?.click()
-                      }
-                      className={`cursor-pointer border border-dashed rounded-3xl p-8 bg-zinc-900 transition duration-300 hover:bg-zinc-800 hover:scale-[1.01] ${errors[key]
-                          ? "border-red-500"
-                          : "border-zinc-700 hover:border-white"
-                        }`}
-                    >
-
-                      <div className="flex flex-col items-center justify-center text-center space-y-4 min-h-[260px]">
-
-                        <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                          <Upload className="w-7 h-7 text-white" />
-                        </div>
-
-                        <div>
-                          <p className="font-semibold text-2xl">
-                            {label}
-                          </p>
-
-                          <p className="text-sm text-zinc-400 mt-2">
-                            Click to upload photo
-                          </p>
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  ) : (
-
-                    <div className="border border-zinc-700 rounded-3xl bg-zinc-900 overflow-hidden">
-
-                      {/* IMAGE PREVIEW */}
-
-                      <div className="relative h-[260px]">
-
-                        <img
-                          src={URL.createObjectURL(images[key])}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
-
-                        <div className="absolute top-4 right-4 bg-green-500 text-black text-xs font-bold px-3 py-1 rounded-full">
-                          Uploaded
-                        </div>
-
-                      </div>
-
-                      {/* FOOTER */}
-
-                      <div className="p-5 space-y-4">
-
-                        <div>
-                          <p className="font-semibold text-lg">
-                            {label}
-                          </p>
-
-                          <p className="text-sm text-zinc-400 truncate mt-1">
-                            {images[key]?.name}
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            document
-                              .getElementById(`upload-${key}`)
-                              ?.click()
-                          }
-                          className="w-full rounded-2xl bg-white text-black py-3 font-medium hover:bg-zinc-200 transition"
-                        >
-                          Reupload Photo
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                  )}
-
-                  {errors[key] && (
-                    <p className="text-red-500 text-sm mt-2 text-center">
-                      {errors[key]}
-                    </p>
-                  )}
-
-                </div>
               ))}
+            </select>
+            {errors.goal && (
+              <p className="mt-1 text-sm text-red-400">{errors.goal}</p>
+            )}
+          </div>
 
+          {/* Investment Question */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-3">
+              Will you be able to invest 30-50K on yourself for the next 3 months?{" "}
+              <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-6">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="investment"
+                  value="yes"
+                  checked={formData.investment === "yes"}
+                  onChange={handleChange}
+                  className="mr-2 w-4 h-4 accent-white"
+                />
+                <span className="text-zinc-300">Yes</span>
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="investment"
+                  value="no"
+                  checked={formData.investment === "no"}
+                  onChange={handleChange}
+                  className="mr-2 w-4 h-4 accent-white"
+                />
+                <span className="text-zinc-300">No</span>
+              </label>
             </div>
-          </section>
-          {/* SUBMIT BUTTON */}
+            {errors.investment && (
+              <p className="mt-2 text-sm text-red-400">{errors.investment}</p>
+            )}
+          </div>
 
+          {/* Preferred Plan */}
+          <div>
+            <label htmlFor="preferredPlan" className="block text-sm font-medium text-zinc-300 mb-2">
+              Preferred Plan <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="preferredPlan"
+              name="preferredPlan"
+              value={formData.preferredPlan}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg bg-zinc-900 border outline-none transition duration-300 text-white ${
+                errors.preferredPlan ? "border-red-500" : "border-zinc-700 focus:border-white"
+              }`}
+            >
+              <option value="" className="bg-zinc-900">Select Plan</option>
+              {PLAN_OPTIONS.map((plan) => (
+                <option key={plan} value={plan} className="bg-zinc-900">
+                  {plan}
+                </option>
+              ))}
+            </select>
+            {errors.preferredPlan && (
+              <p className="mt-1 text-sm text-red-400">{errors.preferredPlan}</p>
+            )}
+          </div>
+
+          {/* Submit Button */}
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
-            className="group relative w-full overflow-hidden rounded-2xl border border-white/20 bg-white py-5 text-lg font-semibold text-black transition-all duration-300 hover:scale-[1.01] hover:bg-zinc-200 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-[0.99]"
+            className="group relative w-full overflow-hidden rounded-lg border border-white/20 bg-white py-3 text-base font-semibold text-black transition-all duration-300 hover:scale-[1.01] hover:bg-zinc-200 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-
-            <span className="relative z-10 tracking-wide">
-              {loading
-                ? "Submitting..."
-                : "Submit Check-In"}
+            <span className="relative z-10">
+              {loading ? "Submitting..." : "Apply Now"}
             </span>
-
           </button>
-
-        </div>
+        </form>
       </div>
     </main>
   );
