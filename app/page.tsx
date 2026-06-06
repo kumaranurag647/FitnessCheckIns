@@ -3,22 +3,19 @@
 import { useState } from "react";
 
 const SOUTH_DELHI_AREAS = [
-  "Chattarpur",
-  "Chhatarpur Pahari",
+  "CR Park",
   "Defence Colony",
   "East of Kailash",
   "Greater Kailash",
   "Greater Kailash I",
   "Greater Kailash II",
   "Hauz Khas",
-  "Kalkaji",
-  "Lajpat Nagar",
-  "Malviya Nagar",
-  "Mehrauli",
-  "Nehru Place",
+  "Kailash Colony",
   "Safdarjung Enclave",
+  "Sainik Farms",
   "Saket",
   "Vasant Kunj",
+  "Vasant Vihar",
 ];
 
 const GOAL_OPTIONS = {
