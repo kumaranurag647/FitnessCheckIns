@@ -173,8 +173,8 @@ export default function ClientCheckins() {
       .upload(path, file);
 
     if (error) {
-      console.log(error);
-      return null;
+      console.error("Image upload error:", error);
+      throw new Error(`Failed to upload image: ${error.message}`);
     }
 
     const { data } = supabase.storage
@@ -190,33 +190,33 @@ export default function ClientCheckins() {
     setLoading(true);
 
     try {
-      const frontUrl = images.front
-        ? await uploadImage(
-          images.front,
-          `front-${Date.now()}`
-        )
-        : "";
+      // Ensure all images exist before uploading
+      if (!images.front || !images.left || !images.right || !images.back) {
+        alert("All images are required");
+        setLoading(false);
+        return;
+      }
 
-      const leftUrl = images.left
-        ? await uploadImage(
-          images.left,
-          `left-${Date.now()}`
-        )
-        : "";
+      // Upload all images
+      const frontUrl = await uploadImage(
+        images.front,
+        `front-${Date.now()}`
+      );
 
-      const rightUrl = images.right
-        ? await uploadImage(
-          images.right,
-          `right-${Date.now()}`
-        )
-        : "";
+      const leftUrl = await uploadImage(
+        images.left,
+        `left-${Date.now()}`
+      );
 
-      const backUrl = images.back
-        ? await uploadImage(
-          images.back,
-          `back-${Date.now()}`
-        )
-        : "";
+      const rightUrl = await uploadImage(
+        images.right,
+        `right-${Date.now()}`
+      );
+
+      const backUrl = await uploadImage(
+        images.back,
+        `back-${Date.now()}`
+      );
 
       const response = await fetch("/api/client-checkins", {
         method: "POST",

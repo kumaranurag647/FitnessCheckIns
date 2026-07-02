@@ -1,8 +1,28 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+
+// Create Supabase client with service role key for API routes (bypasses RLS)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error("Missing Supabase environment variables");
+}
+
+const supabase = createClient(
+  supabaseUrl || "",
+  supabaseServiceKey || ""
+);
 
 export async function POST(request: NextRequest) {
   try {
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: "Server configuration error: Missing Supabase keys" },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
 
     const {
