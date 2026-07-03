@@ -134,8 +134,8 @@ export default function ClientCheckinsView() {
     <main className="min-h-screen bg-black text-white py-8 px-2">
       <div className="mx-auto w-full max-w-6xl bg-black rounded-[32px] p-2 md:p-4">
         <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="min-w-0">
-            <h1 className="text-4xl font-semibold">Client Check-In Entries</h1>
+          <div className="min-w-0 pl-2">
+            <h1 className="text-4xl font-semibold">Client Check-Ins</h1>
             <p className="mt-3 text-zinc-400 max-w-2xl">
               Search and review all client check-ins with images and details in an accordion view.
             </p>
