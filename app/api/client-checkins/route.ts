@@ -14,6 +14,46 @@ const supabase = createClient(
   supabaseServiceKey || ""
 );
 
+export async function GET(request: NextRequest) {
+  try {
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: "Server configuration error: Missing Supabase keys" },
+        { status: 500 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get("q")?.trim();
+
+    let builder = supabase.from("checkins").select("*").order("created_at", {
+      ascending: false,
+    });
+
+    if (query) {
+      builder = builder.ilike("name", `%${query}%`);
+    }
+
+    const { data, error } = await builder;
+
+    if (error) {
+      console.error("Supabase read error:", error);
+      return NextResponse.json(
+        { error: "Failed to load client check-ins" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ data }, { status: 200 });
+  } catch (error) {
+    console.error("API error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!supabaseUrl || !supabaseServiceKey) {
