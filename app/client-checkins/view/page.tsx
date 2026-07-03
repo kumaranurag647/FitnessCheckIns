@@ -154,13 +154,7 @@ export default function ClientCheckinsView() {
           </div>
         </div>
 
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-zinc-800 bg-zinc-900 px-6 py-4">
-          <div>
-            <p className="text-sm text-zinc-400">Showing</p>
-            <p className="text-xl font-semibold">{visibleCount} result{visibleCount === 1 ? "" : "s"}</p>
-          </div>
-          <div className="text-sm text-zinc-400">Search term: <span className="text-white">{searchTerm || "All clients"}</span></div>
-        </div>
+        <p className="mb-4 px-2 text-sm text-zinc-400">Showing {visibleCount} result{visibleCount === 1 ? "" : "s"}</p>
 
         {error ? (
           <div className="rounded-3xl border border-red-500 bg-red-500/10 p-6 text-red-200">
