@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 
 interface Checkin {
   id: number;
@@ -38,8 +38,53 @@ export default function ClientCheckinsView() {
   const [loading, setLoading] = useState(false);
   const [initialFinished, setInitialFinished] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [imageViewer, setImageViewer] = useState<{ src: string; alt: string } | null>(null);
+  const [zoom, setZoom] = useState(1);
   const [error, setError] = useState("");
+  const touchZoomRef = useRef<{ startDistance: number; startZoom: number } | null>(null);
   const loadingTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const getDistance = (touches: React.TouchList) => {
+    const [a, b] = [touches[0], touches[1]];
+    return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  };
+
+  const openImageViewer = (src: string, alt: string) => {
+    setImageViewer({ src, alt });
+    setZoom(1);
+    touchZoomRef.current = null;
+  };
+
+  const closeImageViewer = () => {
+    setImageViewer(null);
+    setZoom(1);
+    touchZoomRef.current = null;
+  };
+
+  const handleImageTouchStart = (event: React.TouchEvent<HTMLImageElement>) => {
+    if (event.touches.length === 2) {
+      event.preventDefault();
+      touchZoomRef.current = {
+        startDistance: getDistance(event.touches),
+        startZoom: zoom,
+      };
+    }
+  };
+
+  const handleImageTouchMove = (event: React.TouchEvent<HTMLImageElement>) => {
+    if (event.touches.length === 2 && touchZoomRef.current) {
+      event.preventDefault();
+      const nextDistance = getDistance(event.touches);
+      const nextZoom = touchZoomRef.current.startZoom * (nextDistance / touchZoomRef.current.startDistance);
+      setZoom(Math.min(4, Math.max(1, nextZoom)));
+    }
+  };
+
+  const handleImageTouchEnd = (event: React.TouchEvent<HTMLImageElement>) => {
+    if (event.touches.length < 2) {
+      touchZoomRef.current = null;
+    }
+  };
 
   const fetchCheckins = async (search = "") => {
     setError("");
@@ -87,16 +132,16 @@ export default function ClientCheckinsView() {
 
   return (
     <main className="min-h-screen bg-black text-white py-16 px-4">
-      <div className="max-w-6xl mx-auto bg-zinc-950 border border-zinc-800 rounded-[32px] p-10 shadow-2xl">
+      <div className="mx-auto w-full max-w-6xl bg-zinc-950 border border-zinc-800 rounded-[32px] p-6 md:p-10 shadow-2xl">
         <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-4xl font-semibold">Client Check-In Entries</h1>
             <p className="mt-3 text-zinc-400 max-w-2xl">
               Search and review all client check-ins with images and details in an accordion view.
             </p>
           </div>
 
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-full md:max-w-md">
             <label className="relative block">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input
@@ -156,7 +201,7 @@ export default function ClientCheckinsView() {
                     <div className="border-t border-zinc-800 px-6 py-6">
                       <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-4">
-                          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5">
+                          <div className="rounded-3xl bg-zinc-900 p-5">
                             <h3 className="text-sm uppercase tracking-[0.2em] text-zinc-500">Measurements</h3>
                             <div className="mt-4 grid gap-3 text-sm text-zinc-300 sm:grid-cols-2">
                               <div>Age: {checkin.age}</div>
@@ -170,7 +215,7 @@ export default function ClientCheckinsView() {
                             </div>
                           </div>
 
-                          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5">
+                          <div className="rounded-3xl bg-zinc-900 p-5">
                             <h3 className="text-sm uppercase tracking-[0.2em] text-zinc-500">Goals & Nutrition</h3>
                             <div className="mt-4 space-y-3 text-sm text-zinc-300">
                               <div><span className="font-semibold text-white">Goal:</span> {checkin.goal}</div>
@@ -182,7 +227,7 @@ export default function ClientCheckinsView() {
                         </div>
 
                         <div className="space-y-4">
-                          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5">
+                          <div className="rounded-3xl bg-zinc-900 p-5">
                             <h3 className="text-sm uppercase tracking-[0.2em] text-zinc-500">Health History</h3>
                             <div className="mt-4 space-y-3 text-sm text-zinc-300">
                               <div><span className="font-semibold text-white">Medical conditions:</span> {checkin.medical_conditions}</div>
@@ -192,13 +237,33 @@ export default function ClientCheckinsView() {
                             </div>
                           </div>
 
-                          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5">
+                          <div className="rounded-3xl bg-zinc-900 p-5">
                             <h3 className="text-sm uppercase tracking-[0.2em] text-zinc-500">Check-In Photos</h3>
                             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                              <img src={checkin.front_image} alt="Front relaxed" className="h-48 w-full rounded-3xl object-cover" />
-                              <img src={checkin.left_image} alt="Left side" className="h-48 w-full rounded-3xl object-cover" />
-                              <img src={checkin.right_image} alt="Right side" className="h-48 w-full rounded-3xl object-cover" />
-                              <img src={checkin.back_image} alt="Back relaxed" className="h-48 w-full rounded-3xl object-cover" />
+                              <img
+                                src={checkin.front_image}
+                                alt="Front relaxed"
+                                className="aspect-square w-full rounded-3xl object-cover"
+                                onClick={() => openImageViewer(checkin.front_image, "Front relaxed")}
+                              />
+                              <img
+                                src={checkin.left_image}
+                                alt="Left side"
+                                className="aspect-square w-full rounded-3xl object-cover"
+                                onClick={() => openImageViewer(checkin.left_image, "Left side")}
+                              />
+                              <img
+                                src={checkin.right_image}
+                                alt="Right side"
+                                className="aspect-square w-full rounded-3xl object-cover"
+                                onClick={() => openImageViewer(checkin.right_image, "Right side")}
+                              />
+                              <img
+                                src={checkin.back_image}
+                                alt="Back relaxed"
+                                className="aspect-square w-full rounded-3xl object-cover"
+                                onClick={() => openImageViewer(checkin.back_image, "Back relaxed")}
+                              />
                             </div>
                           </div>
                         </div>
@@ -211,6 +276,30 @@ export default function ClientCheckinsView() {
           </div>
         )}
       </div>
+
+      {imageViewer ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4">
+          <button
+            onClick={closeImageViewer}
+            className="absolute right-4 top-4 rounded-full bg-black/70 p-3 text-white shadow-xl"
+            aria-label="Close image viewer"
+          >
+            <X size={20} />
+          </button>
+
+          <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-3xl">
+            <img
+              src={imageViewer.src}
+              alt={imageViewer.alt}
+              className="max-h-full max-w-full object-contain"
+              style={{ transform: `scale(${zoom})` }}
+              onTouchStart={handleImageTouchStart}
+              onTouchMove={handleImageTouchMove}
+              onTouchEnd={handleImageTouchEnd}
+            />
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
