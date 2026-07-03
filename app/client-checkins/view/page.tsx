@@ -131,8 +131,8 @@ export default function ClientCheckinsView() {
   const visibleCount = useMemo(() => checkins.length, [checkins]);
 
   return (
-    <main className="min-h-screen bg-black text-white py-16 px-4">
-      <div className="mx-auto w-full max-w-6xl bg-zinc-950 border border-zinc-800 rounded-[32px] p-6 md:p-10 shadow-2xl">
+    <main className="min-h-screen bg-black text-white py-8 px-2">
+      <div className="mx-auto w-full max-w-6xl bg-black rounded-[32px] p-2 md:p-4">
         <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <h1 className="text-4xl font-semibold">Client Check-In Entries</h1>
