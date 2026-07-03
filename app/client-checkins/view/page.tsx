@@ -281,8 +281,10 @@ export default function ClientCheckinsView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4">
           <button
             onClick={closeImageViewer}
-            className="absolute right-4 top-4 rounded-full bg-black/70 p-3 text-white shadow-xl"
+            onTouchStart={closeImageViewer}
+            className="absolute right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-black/70 p-3 text-white shadow-xl"
             aria-label="Close image viewer"
+            type="button"
           >
             <X size={20} />
           </button>
