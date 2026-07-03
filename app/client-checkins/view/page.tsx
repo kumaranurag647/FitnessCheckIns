@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
 
 interface Checkin {
@@ -36,12 +36,15 @@ export default function ClientCheckinsView() {
   const [searchTerm, setSearchTerm] = useState("");
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialFinished, setInitialFinished] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const loadingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const fetchCheckins = async (search = "") => {
-    setLoading(true);
     setError("");
+    if (loadingTimeout.current) clearTimeout(loadingTimeout.current);
+    loadingTimeout.current = setTimeout(() => setLoading(true), 200);
 
     try {
       const url = new URL("/api/client-checkins", window.location.origin);
@@ -55,9 +58,15 @@ export default function ClientCheckinsView() {
       }
 
       setCheckins(data.data || []);
+      setSearchTerm(search);
+      setInitialFinished(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load check-ins");
     } finally {
+      if (loadingTimeout.current) {
+        clearTimeout(loadingTimeout.current);
+        loadingTimeout.current = null;
+      }
       setLoading(false);
     }
   };
@@ -66,11 +75,13 @@ export default function ClientCheckinsView() {
     fetchCheckins();
   }, []);
 
-  const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSearchTerm(query);
-    await fetchCheckins(query);
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchCheckins(query);
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const visibleCount = useMemo(() => checkins.length, [checkins]);
 
@@ -85,7 +96,7 @@ export default function ClientCheckinsView() {
             </p>
           </div>
 
-          <form className="w-full max-w-md" onSubmit={handleSearch}>
+          <div className="w-full max-w-md">
             <label className="relative block">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
               <input
@@ -95,7 +106,7 @@ export default function ClientCheckinsView() {
                 className="w-full rounded-3xl border border-zinc-700 bg-zinc-900 py-4 pl-12 pr-4 text-white outline-none transition focus:border-white"
               />
             </label>
-          </form>
+          </div>
         </div>
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-zinc-800 bg-zinc-900 px-6 py-4">
@@ -112,7 +123,7 @@ export default function ClientCheckinsView() {
           </div>
         ) : null}
 
-        {loading ? (
+        {loading && !initialFinished ? (
           <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-10 text-center text-zinc-300">
             Loading client check-ins...
           </div>
