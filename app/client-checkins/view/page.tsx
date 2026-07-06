@@ -32,6 +32,7 @@ interface Checkin {
 }
 
 export default function ClientCheckinsView() {
+  const secretCode = process.env.NEXT_PUBLIC_CLIENT_CHECKIN_SECRET_CODE ?? "101010";
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [checkins, setCheckins] = useState<Checkin[]>([]);
@@ -41,6 +42,9 @@ export default function ClientCheckinsView() {
   const [imageViewer, setImageViewer] = useState<{ src: string; alt: string } | null>(null);
   const [zoom, setZoom] = useState(1);
   const [error, setError] = useState("");
+  const [accessCode, setAccessCode] = useState("");
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [accessError, setAccessError] = useState("");
   const touchZoomRef = useRef<{ startDistance: number; startZoom: number } | null>(null);
   const loadingTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -86,6 +90,18 @@ export default function ClientCheckinsView() {
     }
   };
 
+  const handleAccessSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (accessCode.trim() === secretCode) {
+      setIsAuthorized(true);
+      setAccessError("");
+      return;
+    }
+
+    setAccessError("Incorrect secret code. Please try again.");
+  };
+
   const fetchCheckins = async (search = "") => {
     setError("");
     if (loadingTimeout.current) clearTimeout(loadingTimeout.current);
@@ -117,18 +133,59 @@ export default function ClientCheckinsView() {
   };
 
   useEffect(() => {
+    if (!isAuthorized) return;
     fetchCheckins();
-  }, []);
+  }, [isAuthorized]);
 
   useEffect(() => {
+    if (!isAuthorized) return;
+
     const timer = setTimeout(() => {
       fetchCheckins(query);
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [isAuthorized, query]);
 
   const visibleCount = useMemo(() => checkins.length, [checkins]);
+
+  if (!isAuthorized) {
+    return (
+      <main className="min-h-screen bg-black text-white flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md rounded-[32px] border border-zinc-800 bg-zinc-950 p-8 shadow-2xl">
+          <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">Restricted access</p>
+          <h1 className="mt-3 text-3xl font-semibold">Enter the secret code</h1>
+          <p className="mt-3 text-sm text-zinc-400">
+            Only authorized users can view client check-ins.
+          </p>
+
+          <form onSubmit={handleAccessSubmit} className="mt-6 space-y-4">
+            <label className="block text-sm text-zinc-300" htmlFor="secret-code">
+              Secret Code
+            </label>
+            <input
+              id="secret-code"
+              type="password"
+              value={accessCode}
+              onChange={(event) => {
+                setAccessCode(event.target.value);
+                if (accessError) setAccessError("");
+              }}
+              placeholder="Enter code"
+              className="w-full rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-white"
+            />
+            {accessError ? <p className="text-sm text-red-400">{accessError}</p> : null}
+            <button
+              type="submit"
+              className="w-full rounded-2xl bg-white px-4 py-3 font-medium text-black transition hover:bg-zinc-200"
+            >
+              Access page
+            </button>
+          </form>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-black text-white py-8 px-2">
